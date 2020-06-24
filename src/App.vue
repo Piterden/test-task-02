@@ -58,6 +58,7 @@ export default {
     },
 
     count () {
+      this.letters = []
       const queryArray = this.query.split('')
       const len = queryArray.length
 
@@ -65,19 +66,22 @@ export default {
         const startIndex = i * LINES_LENGTH
         const endIndex = startIndex + LINES_LENGTH
 
-        if (!this.letters.length) {
+        if (this.letters.length > 0) {
           this.letters[i] = new Uint8Array(this.db.buffer, startIndex, endIndex)
-            .map((code, idx) => queryArray[i].charCodeAt() === code ? idx : null)
+            .map((code, idx) => queryArray[i].charCodeAt() === code &&
+              this.letters[i - 1].includes(idx) ? idx : false)
             .filter(Boolean)
+          this.value = this.letters[i].length
+          this.indexes = this.letters[i]
+          continue
         }
 
+        this.letters[i] = new Uint8Array(this.db.buffer, startIndex, endIndex)
+          .map((code, idx) => queryArray[i].charCodeAt() === code ? idx : null)
+          .filter(Boolean)
+        this.value = this.letters[i].length
+        this.indexes = this.letters[i]
       }
-
-      this.value = this.letters[0].length
-    },
-
-    updateQuery (query) {
-      this.query = query
     },
   },
 }
